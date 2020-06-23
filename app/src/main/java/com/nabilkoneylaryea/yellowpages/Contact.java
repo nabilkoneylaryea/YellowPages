@@ -8,7 +8,7 @@ public class Contact {
     private Uri img;
 
 
-    public Contact(Uri img, String firstName, String lastName, String phoneNumber) {
+    Contact(Uri img, String firstName, String lastName, String phoneNumber) {
         id = -1;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -16,7 +16,15 @@ public class Contact {
         this.img = img;
     }
 
-    public Contact() {}
+    Contact(String img, String firstName, String lastName, String phoneNumber) {
+        id = -1;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phoneNumber = phoneNumber;
+        this.img = Uri.parse(img);
+    }
+
+    Contact() {}
 
     @Override
     public String toString() {

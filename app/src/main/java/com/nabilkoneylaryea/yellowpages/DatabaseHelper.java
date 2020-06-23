@@ -52,12 +52,41 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     }
 
-    public Cursor getItemID(String number) {
+    public int getItemID(String number) {
         SQLiteDatabase db = this.getWritableDatabase();
         String query = "SELECT " + Constants.COLUMN_ID + " FROM " + Constants.TABLE_CONTACTS +
                 " WHERE " + Constants.COLUMN_PHONE_NUMBER + " = '" + number + "'";
-        Cursor data = db.rawQuery(query, null);
-        return data;
+        Cursor cursor = db.rawQuery(query, null);
+        int ID;
+        if(cursor.moveToFirst()) {
+            ID = cursor.getInt(0);
+        }
+        else {
+            ID = -1;
+        }
+        return ID;
+    }
+
+    public Contact getContact(int ID) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + Constants.TABLE_CONTACTS + " WHERE " + Constants.COLUMN_ID + " = '" + ID + "'";
+        Cursor cursor = db.rawQuery(query, null);
+        Contact contact = null;
+        if(cursor.moveToFirst()) {
+            String firstName = cursor.getString(1);
+            String lastName = cursor.getString(2);
+            String phoneNumber = cursor.getString(3);
+            String imgString = "";
+            if (cursor.getString(4) != null) {
+                imgString = cursor.getString(4);
+            }
+            contact = new Contact(imgString, firstName, lastName, phoneNumber);
+            return contact;
+        }
+        else {
+            Log.i(TAG, "getContact: Contact doesn't exist!");
+            return contact;
+        }
     }
 
     public void deleteAll() {
