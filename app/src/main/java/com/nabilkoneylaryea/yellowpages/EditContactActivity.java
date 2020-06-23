@@ -19,10 +19,12 @@ public class EditContactActivity extends AppCompatActivity {
     EditText et_firstName, et_lastName, et_number;
     CircleImageView civ_pfp;
     Button btn_confirm, btn_cancel;
-    DatabaseHelper db = DatabaseHelper.getInstance(this);
+    DatabaseHelper db;
 
+    int ID;
     String oldFirstName, oldLastName, oldPhoneNumber;
     String newFirstName, newLastName, newPhoneNumber;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,22 +37,25 @@ public class EditContactActivity extends AppCompatActivity {
         btn_confirm = findViewById(R.id.btn_confirm_edit);
         btn_cancel = findViewById(R.id.btn_cancel_edit);
 
+        db = DatabaseHelper.getInstance(this);
+
         Intent oldIntent = getIntent();
+        ID = oldIntent.getIntExtra("ID", -1);
+        Contact contact = db.getContact(ID);
 
-        oldFirstName = oldIntent.getStringExtra("FIRST_NAME");
-        oldLastName = oldIntent.getStringExtra("LAST_NAME");
-        oldPhoneNumber = oldIntent.getStringExtra("PHONE_NUMBER");
-        boolean hasImage = oldIntent.getBooleanExtra("HAS_IMAGE", false);
-        if(hasImage) {
-            String imgUriString = oldIntent.getStringExtra("IMAGE");
-            Uri img = Uri.parse(imgUriString);
-            civ_pfp.setImageURI(img);
-        }
-
+        oldFirstName = contact.getFirstName();
         et_firstName.setHint(oldFirstName);
+
+        oldLastName = contact.getLastName();
         et_lastName.setHint(oldLastName);
+
+        oldPhoneNumber = contact.getPhoneNumber();
         et_number.setHint(oldPhoneNumber);
 
+        if(contact.hasImage()) {
+            Uri img = contact.getImg();
+            civ_pfp.setImageURI(img);
+        }
 
         btn_confirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,11 +65,7 @@ public class EditContactActivity extends AppCompatActivity {
                 newLastName = et_lastName.getText().toString();
                 newPhoneNumber = et_number.getText().toString();
                 updateContact();
-                Intent intent = new Intent();
-                intent.putExtra("NEW_FIRST_NAME", newFirstName);
-                intent.putExtra("NEW_LAST_NAME", newLastName);
-                intent.putExtra("NEW_PHONE_NUMBER", newPhoneNumber);
-                setResult(RESULT_OK, intent);
+                setResult(RESULT_OK);
                 finish();
             }
         });
@@ -78,27 +79,12 @@ public class EditContactActivity extends AppCompatActivity {
 
     private void updateContact () {
 
-        Cursor data = db.getItemID(oldPhoneNumber);
-
-        int id = -1;
-        if (data.moveToFirst()) {
-
-            do {
-
-                id = data.getInt(0);
-
-            } while (data.moveToNext());
-
-        } else {
-            Log.i(TAG, "updateContact: Contact ID not found in correlation to phone number");
-        }
-
         boolean firstNameDifferent = newFirstName.length() > 0 && !(newFirstName.equals(oldFirstName));
         boolean lastNameDifferent = newLastName.length() > 0 && !(newLastName.equals(oldLastName));
         boolean numberDifferent = newPhoneNumber.length() > 0 && !(newPhoneNumber.equals(oldPhoneNumber));
 
         if (firstNameDifferent) {
-            db.updateFirstName(id, oldFirstName, newFirstName);
+            db.updateFirstName(ID, oldFirstName, newFirstName);
             Log.i(TAG, "updateContact: First Name: " + newFirstName);
         }
         else {
@@ -106,25 +92,24 @@ public class EditContactActivity extends AppCompatActivity {
         }
 
         if (lastNameDifferent) {
-            db.updateLastName(id, oldLastName, newLastName);
+            db.updateLastName(ID, oldLastName, newLastName);
             Log.i(TAG, "updateContact: Last Name: " + newLastName);
         }
         else {
-            newFirstName = oldFirstName;
+            newLastName = oldLastName;
         }
 
         if (numberDifferent) {
-           db.updatePhoneNumber(id, oldPhoneNumber, newPhoneNumber);
+           db.updatePhoneNumber(ID, oldPhoneNumber, newPhoneNumber);
             Log.i(TAG, "updateContact: Phone Number: " + newPhoneNumber);
         }
         else {
-            newFirstName = oldFirstName;
+            newPhoneNumber = oldPhoneNumber;
         }
 
         et_firstName.setText(newFirstName);
         et_lastName.setText(newLastName);
         et_number.setText(newPhoneNumber);
-
 
     }
 }
