@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -26,7 +27,6 @@ public class MainActivity extends AppCompatActivity implements Adapter.itemClick
     RecyclerView rv_list;
     Adapter adapter;
     SearchView sv_search;
-    CardView cv_search_bar;
     DatabaseHelper db;
     public static final String TAG = "MAIN_ACTIVITY";
 
@@ -102,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements Adapter.itemClick
         Intent intent = new Intent(this, ViewContactActivity.class);
 
         List<Contact> contacts;
-
         if (adapter.getData().size() == adapter.getDataFull().size()) {
             contacts = adapter.getDataFull();
         }
@@ -110,38 +109,16 @@ public class MainActivity extends AppCompatActivity implements Adapter.itemClick
             contacts = adapter.getData();
         }
 
-
-        //NEED TO GO BACK AND MAKE CONTACT CLASS PARCEABLE SO THAT IT CAN BE PASSED AS A PARCEABLE OBJECT!!
+        //TODO SHOULD I GO BACK AND MAKE CONTACT CLASS PARCEABLE SO THAT IT CAN BE PASSED AS A PARCEABLE OBJECT!?
 
         Contact contact = contacts.get(position);
         Log.i(TAG, "onClick: " + position);
-
-
-        String firstName = contact.getFirstName();
-        Log.i(TAG, "onClick: " + firstName);
-        intent.putExtra("FIRST_NAME", firstName);
-
-        String lastName = contact.getLastName();
-        Log.i(TAG, "onClick: " + lastName);
-        intent.putExtra("LAST_NAME", lastName);
-
         String number = contact.getPhoneNumber();
         Log.i(TAG, "onClick: " + number);
-        intent.putExtra("PHONE_NUMBER", number);
 
-        boolean hasImage = contact.hasImage();
-        intent.putExtra("HAS_IMAGE", hasImage);
-
-        if (contact.hasImage()) {
-
-            Uri img = contact.getImg();
-            Log.i(TAG, "onClick: " + img.getPath());
-
-            String imgUri = img.toString();
-            Log.i(TAG, "onClick: " + imgUri);
-            intent.putExtra("IMAGE", imgUri);
-
-        }
+        int ID = db.getItemID(number);
+        intent.putExtra("ID", ID);
+        Log.i(TAG, "onClick: " + ID);
 
         startActivityForResult(intent , 1);
 

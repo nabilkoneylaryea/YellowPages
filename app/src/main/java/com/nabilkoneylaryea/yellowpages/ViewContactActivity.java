@@ -26,8 +26,8 @@ public class ViewContactActivity extends AppCompatActivity {
     TextView tv_view_number;
     Button btn_back, btn_deleteContact;
 
-    String firstName, lastName, number, imgUriString;
-    boolean hasImage;
+    String firstName, lastName, number;
+    int ID;
 
     DatabaseHelper db;
 
@@ -47,40 +47,22 @@ public class ViewContactActivity extends AppCompatActivity {
         btn_deleteContact = findViewById(R.id.btn_deleteContact);
 
         db = DatabaseHelper.getInstance(this);
+
         Intent oldIntent = getIntent();
+        ID = oldIntent.getIntExtra("ID", -1);
 
-        firstName = oldIntent.getStringExtra("FIRST_NAME");
-        lastName = oldIntent.getStringExtra("LAST_NAME");
-        String name =  firstName + " " + lastName ;
-        number = oldIntent.getStringExtra("PHONE_NUMBER");
-
-        hasImage = oldIntent.getBooleanExtra("HAS_IMAGE", false);
-        if (hasImage) {
-            imgUriString = oldIntent.getStringExtra("IMAGE");
-            Uri img = Uri.parse(imgUriString);
-            civ_view_pfp.setImageURI(img);
-        }
-
-        tv_view_name.setText(name);
-        tv_view_number.setText(number);
+        viewContact();
 
         btn_deleteContact.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Cursor cursor = db.getItemID(number);
-                int id = -1;
-                if (cursor.moveToFirst()) {
-                    do {
-                        id = cursor.getInt(0);
-                    } while (cursor.moveToNext());
-                } else {
-                    Log.i(TAG, "onClick: Apparently contact doesn't exist");
-                }
-                db.deleteContact(id, firstName, lastName, number);
+
+                db.deleteContact(ID, firstName, lastName, number);
                 Log.i(TAG, "onClick: Deleting...");
                 Toast.makeText(ViewContactActivity.this, "Deleted: " + firstName + " " + lastName, Toast.LENGTH_SHORT).show();
                 setResult(RESULT_OK);
                 finish();
+
             }
         });
         btn_back.setOnClickListener(new View.OnClickListener() {
@@ -106,24 +88,9 @@ public class ViewContactActivity extends AppCompatActivity {
                 try {
 
                     Intent newIntent = new Intent(ViewContactActivity.this, EditContactActivity.class);
-
-                    Log.i(TAG, "onClick: " + firstName);
-                    newIntent.putExtra("FIRST_NAME", firstName);
-
-                    Log.i(TAG, "onClick: " + lastName);
-                    newIntent.putExtra("LAST_NAME", lastName);
-
-                    Log.i(TAG, "onClick: " + number);
-                    newIntent.putExtra("PHONE_NUMBER", number);
-
-                    newIntent.putExtra("HAS_IMAGE", hasImage);
-                    if (hasImage) {
-
-                        Log.i(TAG, "onClick: " + imgUriString);
-                        newIntent.putExtra("IMAGE", imgUriString);
-
-                    }
+                    newIntent.putExtra("ID", ID);
                     startActivityForResult(newIntent, 3);
+
                 }
                 catch(Exception e) {
                     Log.i(TAG, "onOptionsItemSelected: " + e.toString());
@@ -135,16 +102,30 @@ public class ViewContactActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == 3 && resultCode == RESULT_OK && data != null) {
-            firstName = data.getStringExtra("NEW_FIRST_NAME");
-            lastName = data.getStringExtra("NEW_LAST_NAME");
-            String name = firstName + " " + lastName;
-            number = data.getStringExtra("NEW_PHONE_NUMBER");
+        if (requestCode == 3 && resultCode == RESULT_OK) {
 
-            tv_view_name.setText(name);
-            tv_view_number.setText(number);
+            viewContact();
             Toast.makeText(ViewContactActivity.this, "Updated!",Toast.LENGTH_SHORT).show();
+
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    public void viewContact() {
+
+        Contact contact = db.getContact(ID);
+        firstName = contact.getFirstName();
+        lastName = contact.getLastName();
+        String name = firstName + " " + lastName;
+        tv_view_name.setText(name);
+
+        number = contact.getPhoneNumber();
+        tv_view_number.setText(number);
+
+        if (contact.hasImage()) {
+            Uri img = contact.getImg();
+            civ_view_pfp.setImageURI(img);
+        }
+
     }
 }
