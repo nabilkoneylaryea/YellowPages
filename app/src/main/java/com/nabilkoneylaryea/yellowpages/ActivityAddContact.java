@@ -14,6 +14,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.InputStream;
+
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ActivityAddContact extends AppCompatActivity {
@@ -41,39 +43,27 @@ public class ActivityAddContact extends AppCompatActivity {
         tv_addImg = findViewById(R.id.tv_addImg);
         tv_add_error = findViewById(R.id.tv_add_error);
         db = DatabaseHelper.getInstance(this);
+        try {
+            img = Uri.parse("android.resource://com.nabilkoneylaryea.yellowpages/mipmap/ic_pfp_placeholder");
 
+            civ_pfp.setImageURI(img);
+        }catch(Exception e) {
+            Log.i(TAG, "onCreate: " + e.toString());
+        }
 
         civ_pfp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Should put this code block in a void pickFromGallery method to improve readability and concision!!
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    intent = new Intent (Intent.ACTION_OPEN_DOCUMENT);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                String [] mimeTypes = {"image/png", "image/jpeg"};
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-                startActivityForResult(intent, 2);
+               getFromGallery();
             }
         });
         tv_addImg.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    intent = new Intent (Intent.ACTION_OPEN_DOCUMENT);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                String [] mimeTypes = {"image/png", "image/jpeg"};
-                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
-                startActivityForResult(intent, 2);
+                getFromGallery();
             }
         });
+
         btn_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -115,6 +105,19 @@ public class ActivityAddContact extends AppCompatActivity {
         contact.setPhoneNumber(phoneNumberView.getText().toString());
         contact.setImg(img);
         return contact;
+    }
+
+    public void getFromGallery() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent = new Intent (Intent.ACTION_OPEN_DOCUMENT);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
+        String [] mimeTypes = {"image/png", "image/jpeg"};
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+        startActivityForResult(intent, 2);
     }
 
     @Override
